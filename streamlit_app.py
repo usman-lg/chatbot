@@ -9,6 +9,8 @@ if "start_chat" not in st.session_state:
     st.session_state["start_chat"] = False
 if "messages" not in st.session_state:
     st.session_state["messages"] = []
+if "initial_message_sent" not in st.session_state:
+    st.session_state["initial_message_sent"] = False
 
 # 2) Title and instructions
 st.title("💬 AI Agent")
@@ -28,9 +30,10 @@ st.session_state["searchatlas_jwt"] = st.text_input(
 # 4) Button to start chatting
 if st.button("Start Chatting"):
     if not st.session_state["searchatlas_jwt"]:
-        st.warning("Please provide both your OpenAI API key and SearchAtlas JWT token.")
+        st.warning("Please provide your SearchAtlas JWT token.")
     else:
         st.session_state["start_chat"] = True
+        st.session_state["initial_message_sent"] = False  # Reset on each new chat start
 
         headers = {
             "Authorization": f"Bearer {st.session_state['searchatlas_jwt']}",
@@ -46,37 +49,41 @@ if st.button("Start Chatting"):
         if restart_resp.status_code == 200:
             st.success("Chat session restarted successfully.")
 
-            # 🔥 Send default analysis message right after restart
-            initial_message = "Show me the analysis of the top 10 high-ranking site explorer websites and 10 low-ranking site explorer websites."
+# 5) Send initial message only once after chat starts
+if st.session_state["start_chat"] and not st.session_state["initial_message_sent"]:
+    headers = {
+        "Authorization": f"Bearer {st.session_state['searchatlas_jwt']}",
+        "Content-Type": "application/json",
+    }
 
-            # Send to chat endpoint
-            response = requests.post(
-                "https://agent.searchatlas.com/api/v1/chat/",
-                json={"message": initial_message},
-                headers=headers,
-            )
+    initial_message = "Show me the analysis of the top 10 high-ranking site explorer websites and 10 low-ranking site explorer websites."
 
-            if response.status_code == 200:
-                data = response.json()
-                bot_reply = data.get("response", "No response received.")
-                st.session_state["messages"].append({"role": "assistant", "content": bot_reply})
-                with st.chat_message("assistant"):
-                    st.markdown(bot_reply)
-            else:
-                error_msg = f"Error from /chat/: {response.text}"
-                st.session_state["messages"].append({"role": "assistant", "content": error_msg})
-                with st.chat_message("assistant"):
-                    st.markdown(error_msg)
+    response = requests.post(
+        "https://agent.searchatlas.com/api/v1/chat/",
+        json={"message": initial_message},
+        headers=headers,
+    )
 
-        else:
-            st.error(f"Failed to restart chat session: {restart_resp.text}")
+    if response.status_code == 200:
+        data = response.json()
+        bot_reply = data.get("response", "No response received.")
+        st.session_state["messages"].append({"role": "assistant", "content": bot_reply})
+        st.session_state["initial_message_sent"] = True  # ✅ Set flag to prevent re-send
+        with st.chat_message("assistant"):
+            st.markdown(bot_reply)
+    else:
+        error_msg = f"Error from /chat/: {response.text}"
+        st.session_state["messages"].append({"role": "assistant", "content": error_msg})
+        st.session_state["initial_message_sent"] = True
+        with st.chat_message("assistant"):
+            st.markdown(error_msg)
 
-# Display previous messages from session state
+# 6) Display previous messages from session state
 for message in st.session_state["messages"]:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
-# 5) Chat interface
+# 7) Chat interface
 if st.session_state["start_chat"]:
     searchatlas_jwt = st.session_state["searchatlas_jwt"]
 
@@ -100,7 +107,6 @@ if st.session_state["start_chat"]:
         if resp.status_code == 200:
             django_data = resp.json()
             bot_message = django_data.get("response", "No response")
-            print(django_data)
             message = {"role": "assistant", "content": bot_message}
             st.session_state["messages"].append(message)
             with st.chat_message(message["role"]):
