@@ -9,18 +9,16 @@ if "start_chat" not in st.session_state:
     st.session_state["start_chat"] = False
 if "messages" not in st.session_state:
     st.session_state["messages"] = []
-if "initial_message_sent" not in st.session_state:
-    st.session_state["initial_message_sent"] = False
 
 # 2) Title and instructions
 st.title("💬 AI Agent")
 
 st.write(
     "This simple chatbot uses OpenAI's GPT-4o-mini model to generate responses. "
-    "Please enter your OpenAI API key and your SearchAtlas JWT token, then click the 'Start Chatting' button."
+    "Please enter your SearchAtlas JWT token, then click the 'Start Chatting' button."
 )
 
-# 3) Let the user enter tokens
+# 3) Token input
 st.session_state["searchatlas_jwt"] = st.text_input(
     "SearchAtlas JWT Token", 
     type="password", 
@@ -32,15 +30,12 @@ if st.button("Start Chatting"):
     if not st.session_state["searchatlas_jwt"]:
         st.warning("Please provide your SearchAtlas JWT token.")
     else:
-        st.session_state["start_chat"] = True
-        st.session_state["initial_message_sent"] = False  # Reset on each new chat start
-
         headers = {
             "Authorization": f"Bearer {st.session_state['searchatlas_jwt']}",
             "Content-Type": "application/json",
         }
 
-        # Restart the chat session
+        # Restart chat session
         restart_resp = requests.post(
             "https://agent.searchatlas.com/api/v1/restart/",
             headers=headers,
@@ -49,52 +44,49 @@ if st.button("Start Chatting"):
         if restart_resp.status_code == 200:
             st.success("Chat session restarted successfully.")
 
-# 5) Send initial message only once after chat starts
-if st.session_state["start_chat"] and not st.session_state["initial_message_sent"]:
-    headers = {
-        "Authorization": f"Bearer {st.session_state['searchatlas_jwt']}",
-        "Content-Type": "application/json",
-    }
+            # Reset session state for a clean chat
+            st.session_state["messages"] = []
+            st.session_state["start_chat"] = True
 
-    initial_message = "Show me the analysis of the top 10 high-ranking site explorer websites and 10 low-ranking site explorer websites."
+            # 🔥 Initial message
+            initial_message = "Show me the analysis of the top 10 high-ranking site explorer websites and 10 low-ranking site explorer websites."
 
-    response = requests.post(
-        "https://agent.searchatlas.com/api/v1/chat/",
-        json={"message": initial_message},
-        headers=headers,
-    )
+            response = requests.post(
+                "https://agent.searchatlas.com/api/v1/chat/",
+                json={"message": initial_message},
+                headers=headers,
+            )
 
-    if response.status_code == 200:
-        data = response.json()
-        bot_reply = data.get("response", "No response received.")
-        st.session_state["messages"].append({"role": "assistant", "content": bot_reply})
-        st.session_state["initial_message_sent"] = True  # ✅ Set flag to prevent re-send
-        with st.chat_message("assistant"):
-            st.markdown(bot_reply)
-    else:
-        error_msg = f"Error from /chat/: {response.text}"
-        st.session_state["messages"].append({"role": "assistant", "content": error_msg})
-        st.session_state["initial_message_sent"] = True
-        with st.chat_message("assistant"):
-            st.markdown(error_msg)
+            if response.status_code == 200:
+                data = response.json()
+                bot_reply = data.get("response", "No response received.")
+                st.session_state["messages"].append({"role": "assistant", "content": bot_reply})
+                with st.chat_message("assistant"):
+                    st.markdown(bot_reply)
+            else:
+                error_msg = f"Error from /chat/: {response.text}"
+                st.session_state["messages"].append({"role": "assistant", "content": error_msg})
+                with st.chat_message("assistant"):
+                    st.markdown(error_msg)
+        else:
+            st.error(f"Failed to restart chat session: {restart_resp.text}")
 
-# 6) Display previous messages from session state
+# 5) Display past messages
 for message in st.session_state["messages"]:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
-# 7) Chat interface
+# 6) Chat interface
 if st.session_state["start_chat"]:
     searchatlas_jwt = st.session_state["searchatlas_jwt"]
 
-    # Chat input
     if prompt := st.chat_input("Ask me anything..."):
         message = {"role": "user", "content": prompt}
         st.session_state["messages"].append(message)
         with st.chat_message(message["role"]):
             st.markdown(message["content"])
 
-        # Call Django endpoint with JWT
+        # Send user prompt
         headers = {
             "Authorization": f"Bearer {searchatlas_jwt}",
             "Content-Type": "application/json",
@@ -104,6 +96,7 @@ if st.session_state["start_chat"]:
             json={"message": prompt},
             headers=headers,
         )
+
         if resp.status_code == 200:
             django_data = resp.json()
             bot_message = django_data.get("response", "No response")
