@@ -47,8 +47,7 @@ if st.button("Start Chatting"):
             st.success("Chat session restarted successfully.")
 
             # 🔥 Send default analysis message right after restart
-            initial_message = """Show me the analysis of the top 10 high-ranking site explorer websites and 10 low-ranking site explorer \n
-            websites."
+            initial_message = "Show me the analysis of the top 10 high-ranking site explorer websites and 10 low-ranking site explorer websites."
 
             # Send to chat endpoint
             response = requests.post(
