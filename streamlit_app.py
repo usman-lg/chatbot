@@ -59,15 +59,15 @@ if st.button("Start Chatting"):
             print(django_data)
             message = {"role": "assistant", "content": bot_message}
             st.session_state["messages"].append({"role": "assistant", "content": bot_message})
-            with st.chat_message(message["role"]):
-                st.markdown(message["content"])
+            # with st.chat_message(message["role"]):
+            #     st.markdown(message["content"])
         else:
             bot_message = f"Error calling Django API: {resp.text}"	
 
-# # Display previous messages from session state
-# for message in st.session_state["messages"]:
-#     with st.chat_message(message["role"]):
-#         st.markdown(message["content"])
+# Display previous messages from session state
+for message in st.session_state["messages"]:
+    with st.chat_message(message["role"]):
+        st.markdown(message["content"])
 
 # 5) Chat interface
 if st.session_state["start_chat"]:
