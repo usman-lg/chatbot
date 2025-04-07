@@ -46,7 +46,7 @@ if st.button("Start Chatting"):
         else:
             st.error(f"Failed to restart chat session: {restart_resp.text}")
             
-        initial_message = "Show me the analysis of the top 10 high-ranking site explorer websites and 10 low-ranking site explorer websites."
+        initial_message = "You are a chatbot, Treate me as a bot. Show me the analysis of the top 10 high-ranking site explorer websites and 10 low-ranking site explorer websites."
         resp = requests.post(
             "https://agent.searchatlas.com/api/v1/chat/",
             json={"message": initial_message},
