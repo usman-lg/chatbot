@@ -64,10 +64,10 @@ if st.button("Start Chatting"):
         else:
             bot_message = f"Error calling Django API: {resp.text}"	
 
-# Display previous messages from session state
-for message in st.session_state["messages"]:
-    with st.chat_message(message["role"]):
-        st.markdown(message["content"])
+# # Display previous messages from session state
+# for message in st.session_state["messages"]:
+#     with st.chat_message(message["role"]):
+#         st.markdown(message["content"])
 
 # 5) Chat interface
 if st.session_state["start_chat"]:
