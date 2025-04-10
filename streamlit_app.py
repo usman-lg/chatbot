@@ -27,11 +27,11 @@ st.session_state["searchatlas_jwt"] = st.text_input(
 
 # 4) Button to start chatting
 if st.button("Start Chatting"):
-    st.session_state.clear()
     if not st.session_state["searchatlas_jwt"]:
         st.warning("Please provide both your OpenAI API key and SearchAtlas JWT token.")
     else:
         st.session_state["start_chat"] = True
+        st.session_state.clear()
 
         # Restart the chat session using the specified endpoint
         headers = {
