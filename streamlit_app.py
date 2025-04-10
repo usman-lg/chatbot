@@ -46,21 +46,16 @@ if st.button("Start Chatting"):
         else:
             st.error(f"Failed to restart chat session: {restart_resp.text}")
             
-        initial_message = "You are a chatbot, Treate me as a bot. Show me the analysis of the top 10 high-ranking site explorer websites and 10 low-ranking site explorer websites."
-        resp = requests.post(
-            "https://agent.searchatlas.com/api/v1/chat/",
-            json={"message": initial_message},
+        resp = requests.get(
+            "https://agent.searchatlas.com/api/v1/preloaded-data/",
             headers=headers,
         )
     
         if resp.status_code == 200:
             django_data = resp.json()
             bot_message = django_data.get("response", "No response")
-            print(django_data)
             message = {"role": "assistant", "content": bot_message}
             st.session_state["messages"].append({"role": "assistant", "content": bot_message})
-            # with st.chat_message(message["role"]):
-            #     st.markdown(message["content"])
         else:
             bot_message = f"Error calling Django API: {resp.text}"	
 
