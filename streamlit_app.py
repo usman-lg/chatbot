@@ -55,8 +55,7 @@ if st.button("Start Chatting"):
         if resp.status_code == 200:
             django_data = resp.json()
             bot_message = django_data.get("response", "No response")
-            message = {"role": "assistant", "content": bot_message[0]}
-            st.session_state["messages"].append({"role": "assistant", "content": bot_message})
+            st.session_state["messages"].append({"role": "assistant", "content": bot_message[0]})
         else:
             bot_message = f"Error calling Django API: {resp.text}"	
 
