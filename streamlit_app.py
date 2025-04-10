@@ -3,7 +3,6 @@ import requests
 from openai import OpenAI
 
 # 1) Session state for storing keys and chat messages
-st.session_state.clear()
 if "searchatlas_jwt" not in st.session_state:
     st.session_state["searchatlas_jwt"] = ""
 if "start_chat" not in st.session_state:
@@ -28,6 +27,8 @@ st.session_state["searchatlas_jwt"] = st.text_input(
 
 # 4) Button to start chatting
 if st.button("Start Chatting"):
+    if st.button("Start Chatting"):
+        st.session_state.clear()
     if not st.session_state["searchatlas_jwt"]:
         st.warning("Please provide both your OpenAI API key and SearchAtlas JWT token.")
     else:
