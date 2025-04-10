@@ -3,6 +3,7 @@ import requests
 from openai import OpenAI
 
 # 1) Session state for storing keys and chat messages
+st.session_state.clear()
 if "searchatlas_jwt" not in st.session_state:
     st.session_state["searchatlas_jwt"] = ""
 if "start_chat" not in st.session_state:
@@ -31,7 +32,6 @@ if st.button("Start Chatting"):
         st.warning("Please provide both your OpenAI API key and SearchAtlas JWT token.")
     else:
         st.session_state["start_chat"] = True
-        st.session_state.clear()
 
         # Restart the chat session using the specified endpoint
         headers = {
