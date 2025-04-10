@@ -27,6 +27,7 @@ st.session_state["searchatlas_jwt"] = st.text_input(
 
 # 4) Button to start chatting
 if st.button("Start Chatting"):
+    st.session_state.clear()
     if not st.session_state["searchatlas_jwt"]:
         st.warning("Please provide both your OpenAI API key and SearchAtlas JWT token.")
     else:
@@ -54,7 +55,7 @@ if st.button("Start Chatting"):
         if resp.status_code == 200:
             django_data = resp.json()
             bot_message = django_data.get("response", "No response")
-            message = {"role": "assistant", "content": bot_message}
+            message = {"role": "assistant", "content": bot_message[0]}
             st.session_state["messages"].append({"role": "assistant", "content": bot_message})
         else:
             bot_message = f"Error calling Django API: {resp.text}"	
